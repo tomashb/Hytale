@@ -36,6 +36,22 @@ import { registerScoreboardSystem } from "./src/main";
 registerScoreboardSystem(server);
 ```
 
+## Compiler le projet
+
+1. Installez les dépendances :
+
+```bash
+npm install
+```
+
+2. Compilez le TypeScript :
+
+```bash
+npm run build
+```
+
+Les fichiers JavaScript compilés seront disponibles dans `dist/`.
+
 ## Configuration
 
 Le fichier `src/config/scoreboard.config.ts` vous permet de :
