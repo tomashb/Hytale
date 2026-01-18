@@ -1,65 +1,71 @@
-# Hytale Scoreboard (Test)
+# Hytale Scoreboard (Java/Maven)
 
-Ce dépôt fournit un système de scoreboard générique, configurable et par joueur pour un serveur Hytale orienté mini-jeux.
+Ce dépôt fournit un système de scoreboard générique, configurable et par joueur pour un serveur Hytale orienté mini-jeux, écrit en **Java**.
 
 ## Structure
 
 ```
-src/
+src/main/java/com/hytale/scoreboard/
   commands/
-    ScoreboardCommand.ts
+    ScoreboardCommand.java
   config/
-    scoreboard.config.ts
+    ScoreboardConfig.java
   data/
-    PlayerDataProvider.ts
-    TestDataProvider.ts
+    PlayerData.java
+    PlayerDataProvider.java
+    TestDataProvider.java
   scoreboard/
-    PlaceholderRegistry.ts
-    ScoreboardManager.ts
-    ScoreboardSession.ts
+    PlaceholderRegistry.java
+    ScoreboardManager.java
+    ScoreboardSession.java
   types/
-    hytale.ts
-  main.ts
+    CommandContext.java
+    CommandRegistry.java
+    OnlineStatus.java
+    Player.java
+    ScheduledTask.java
+    Scheduler.java
+    ScoreboardSidebar.java
+    Server.java
+    ServerEvents.java
+  ScoreboardSystem.java
 ```
 
 ## Installation rapide
 
-1. Copiez le dossier `src/` dans votre projet/mod Hytale.
-2. Dans votre point d'entrée serveur, appelez `registerScoreboardSystem(server)`.
+1. Copiez le dossier `src/main/java/com/hytale/scoreboard/` dans votre projet/mod Hytale.
+2. Dans votre point d'entrée serveur, appelez `ScoreboardSystem.registerScoreboardSystem(server)`.
 3. Redémarrez votre serveur.
 
 Exemple d'appel :
 
-```ts
-import { registerScoreboardSystem } from "./src/main";
+```java
+import com.hytale.scoreboard.ScoreboardSystem;
+import com.hytale.scoreboard.scoreboard.ScoreboardManager;
 
-registerScoreboardSystem(server);
+ScoreboardManager manager = ScoreboardSystem.registerScoreboardSystem(server);
 ```
 
 ## Compiler le projet
 
-1. Installez les dépendances :
+1. Compilez avec Maven :
 
 ```bash
-npm install
+mvn package
 ```
 
-2. Compilez le TypeScript :
-
-```bash
-npm run build
-```
-
-Les fichiers JavaScript compilés seront disponibles dans `dist/`.
+Le JAR sera disponible dans `target/`.
 
 ## Configuration
 
-Le fichier `src/config/scoreboard.config.ts` vous permet de :
+La classe `ScoreboardConfig` vous permet de :
 
 - Modifier le titre (`title`).
 - Modifier les lignes (`lines`).
 - Ajuster la fréquence d'update (`updateIntervalMs`).
 - Définir si le scoreboard est activé par défaut (`defaultEnabled`).
+
+Par défaut, `ScoreboardSystem` utilise `ScoreboardConfig.defaultConfig()`.
 
 ## Commandes
 
@@ -69,15 +75,15 @@ Le fichier `src/config/scoreboard.config.ts` vous permet de :
 
 ## Ajouter des placeholders
 
-Dans `src/main.ts`, vous pouvez enregistrer un nouveau placeholder :
+Dans `ScoreboardSystem`, vous pouvez enregistrer un nouveau placeholder :
 
-```ts
-placeholderRegistry.register("monPlaceholder", ({ player }) => player.name);
+```java
+placeholderRegistry.register("monPlaceholder", context -> context.getPlayer().getName());
 ```
 
 Utilisez ensuite `{monPlaceholder}` dans le titre ou les lignes.
 
 ## Mode test
 
-Le mode test utilise `src/data/TestDataProvider.ts`, qui renvoie des valeurs fictives.
+Le mode test utilise `TestDataProvider`, qui renvoie des valeurs fictives.
 Vous pouvez y personnaliser les valeurs affichées.
