@@ -1,6 +1,5 @@
 package com.example.hytale.scoreboard.commands;
 
-import com.example.hytale.scoreboard.ConfigService;
 import com.example.hytale.scoreboard.ScoreboardManager;
 import com.example.hytale.scoreboard.adapter.CommandHandler;
 import com.example.hytale.scoreboard.adapter.PlayerAdapter;
@@ -10,12 +9,10 @@ import java.util.logging.Logger;
 
 public class ScoreboardCommand implements CommandHandler {
     private final ScoreboardManager scoreboardManager;
-    private final ConfigService configService;
     private final Logger logger;
 
-    public ScoreboardCommand(ScoreboardManager scoreboardManager, ConfigService configService, Logger logger) {
+    public ScoreboardCommand(ScoreboardManager scoreboardManager, Logger logger) {
         this.scoreboardManager = scoreboardManager;
-        this.configService = configService;
         this.logger = logger;
     }
 
@@ -45,7 +42,6 @@ public class ScoreboardCommand implements CommandHandler {
                 player.sendMessage("Scoreboard en mode TEST.");
             }
             case "reload" -> {
-                configService.load();
                 scoreboardManager.reload();
                 player.sendMessage("Configuration rechargée.");
             }

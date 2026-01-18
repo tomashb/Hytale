@@ -10,6 +10,11 @@ import com.example.hytale.scoreboard.adapter.ScoreboardView;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +24,11 @@ public class HytaleAdapterImpl implements HytaleAdapter {
     private final Logger logger = Logger.getLogger("HytaleScoreboardTest");
     private final File dataFolder;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private final Map<UUID, DemoPlayer> players = new ConcurrentHashMap<>();
+    private final Map<String, CommandHandler> commands = new ConcurrentHashMap<>();
+    private final List<PlayerListener> joinListeners = new CopyOnWriteArrayList<>();
+    private final List<PlayerListener> quitListeners = new CopyOnWriteArrayList<>();
+    private final int maxPlayers = 100;
 
     public HytaleAdapterImpl(String pluginName) {
         this.dataFolder = new File("plugins", pluginName);
@@ -36,20 +46,17 @@ public class HytaleAdapterImpl implements HytaleAdapter {
 
     @Override
     public Collection<PlayerAdapter> getOnlinePlayers() {
-        // TODO Replace with Hytale API player list.
-        return Collections.emptyList();
+        return Collections.unmodifiableCollection(players.values());
     }
 
     @Override
     public int getMaxPlayers() {
-        // TODO Replace with Hytale API max player count.
-        return 0;
+        return maxPlayers;
     }
 
     @Override
     public ScoreboardView createScoreboard(PlayerAdapter player) {
-        // TODO Replace with Hytale API scoreboard creation.
-        return new NoopScoreboardView();
+        return new ConsoleScoreboardView(logger, player);
     }
 
     @Override
@@ -60,38 +67,169 @@ public class HytaleAdapterImpl implements HytaleAdapter {
 
     @Override
     public void registerCommand(String label, CommandHandler handler) {
-        // TODO Replace with Hytale API command registration.
+        if (label == null || handler == null) {
+            return;
+        }
+        commands.put(label.toLowerCase(), handler);
     }
 
     @Override
     public void registerPlayerJoinListener(PlayerListener listener) {
-        // TODO Replace with Hytale API join listener.
+        if (listener != null) {
+            joinListeners.add(listener);
+        }
     }
 
     @Override
     public void registerPlayerQuitListener(PlayerListener listener) {
-        // TODO Replace with Hytale API quit listener.
+        if (listener != null) {
+            quitListeners.add(listener);
+        }
     }
 
-    private static class NoopScoreboardView implements ScoreboardView {
+    public PlayerAdapter addDemoPlayer(String name) {
+        DemoPlayer player = new DemoPlayer(name);
+        players.put(player.getUniqueId(), player);
+        joinListeners.forEach(listener -> listener.onPlayerEvent(player));
+        return player;
+    }
+
+    public void removeDemoPlayer(UUID playerId) {
+        DemoPlayer removed = players.remove(playerId);
+        if (removed != null) {
+            quitListeners.forEach(listener -> listener.onPlayerEvent(removed));
+        }
+    }
+
+    public boolean dispatchCommand(PlayerAdapter player, String rawCommand) {
+        if (rawCommand == null || rawCommand.isBlank()) {
+            return false;
+        }
+        String[] parts = rawCommand.trim().split("\\s+");
+        String label = parts[0].toLowerCase();
+        CommandHandler handler = commands.get(label);
+        if (handler == null) {
+            return false;
+        }
+        String[] args = parts.length > 1 ? java.util.Arrays.copyOfRange(parts, 1, parts.length) : new String[0];
+        return handler.onCommand(player, args);
+    }
+
+    public void shutdown() {
+        scheduler.shutdownNow();
+    }
+
+    private static class ConsoleScoreboardView implements ScoreboardView {
+        private final Logger logger;
+        private final PlayerAdapter player;
+        private String title = "";
+        private List<String> lines = List.of();
+        private boolean visible;
+
+        private ConsoleScoreboardView(Logger logger, PlayerAdapter player) {
+            this.logger = logger;
+            this.player = player;
+        }
+
         @Override
         public void setTitle(String title) {
+            this.title = title == null ? "" : title;
+            if (visible) {
+                logSnapshot("Mise à jour du titre");
+            }
         }
 
         @Override
         public void setLines(java.util.List<String> lines) {
+            this.lines = lines == null ? List.of() : List.copyOf(lines);
+            if (visible) {
+                logSnapshot("Mise à jour des lignes");
+            }
         }
 
         @Override
         public void show() {
+            visible = true;
+            logSnapshot("Affichage du scoreboard");
         }
 
         @Override
         public void hide() {
+            visible = false;
+            logger.info(() -> "Scoreboard masqué pour " + player.getName());
         }
 
         @Override
         public void destroy() {
+            logger.info(() -> "Scoreboard détruit pour " + player.getName());
+        }
+
+        private void logSnapshot(String prefix) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(prefix).append(" pour ").append(player.getName()).append(" -> ").append(title);
+            for (String line : lines) {
+                builder.append(System.lineSeparator()).append(" - ").append(line);
+            }
+            logger.info(builder::toString);
+        }
+    }
+
+    private static class DemoPlayer implements PlayerAdapter {
+        private final UUID uniqueId = UUID.randomUUID();
+        private final String name;
+
+        private DemoPlayer(String name) {
+            this.name = name == null || name.isBlank() ? "Joueur" : name;
+        }
+
+        @Override
+        public UUID getUniqueId() {
+            return uniqueId;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public String getRank() {
+            return "Aventurier";
+        }
+
+        @Override
+        public Integer getCoins() {
+            return 1200;
+        }
+
+        @Override
+        public Integer getLevel() {
+            return 5;
+        }
+
+        @Override
+        public Integer getPing() {
+            return 42;
+        }
+
+        @Override
+        public Integer getFps() {
+            return 120;
+        }
+
+        @Override
+        public String getWorldName() {
+            return "Lobby";
+        }
+
+        @Override
+        public String getGameName() {
+            return "Hub";
+        }
+
+        @Override
+        public void sendMessage(String message) {
+            logger.info(() -> "[Message " + name + "] " + message);
         }
     }
 }
