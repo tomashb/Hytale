@@ -1,0 +1,7 @@
+{
+  "name": "HytaleScoreboardTest",
+  "main": "com.example.hytale.scoreboard.MainPlugin",
+  "version": "1.0.0",
+  "description": "Scoreboard sidebar test with placeholders",
+  "author": "Example"
+}
