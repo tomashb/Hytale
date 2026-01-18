@@ -55,7 +55,7 @@ public class HytaleAdapterImpl implements HytaleAdapter {
     @Override
     public ScheduledTask scheduleRepeating(Runnable task, long intervalMs) {
         var future = scheduler.scheduleAtFixedRate(task, intervalMs, intervalMs, TimeUnit.MILLISECONDS);
-        return future::cancel;
+        return () -> future.cancel(false);
     }
 
     @Override
