@@ -17,7 +17,11 @@ public class MainPlugin {
     private final Logger logger;
 
     public MainPlugin() {
-        this.adapter = new HytaleAdapterImpl("HytaleScoreboardTest");
+        this(new HytaleAdapterImpl("HytaleScoreboardTest"));
+    }
+
+    public MainPlugin(HytaleAdapter adapter) {
+        this.adapter = Objects.requireNonNull(adapter, "Adapter must not be null");
         this.logger = Objects.requireNonNull(adapter.getLogger(), "Logger must not be null");
         this.configService = new ConfigService(adapter, logger);
         this.placeholderRegistry = new PlaceholderRegistry();
@@ -28,7 +32,7 @@ public class MainPlugin {
     public void onEnable() {
         configService.load();
         scoreboardManager.start();
-        adapter.registerCommand("scoreboard", new ScoreboardCommand(scoreboardManager, configService, logger));
+        adapter.registerCommand("scoreboard", new ScoreboardCommand(scoreboardManager, logger));
         logger.info("HytaleScoreboardTest enabled");
     }
 

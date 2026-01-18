@@ -52,7 +52,12 @@ public class ScoreboardManager {
 
     public void reload() {
         configService.load();
-        sessions.values().forEach(session -> session.applyConfig(configService.getConfig()));
+        ConfigService.Config config = configService.getConfig();
+        sessions.values().forEach(session -> {
+            session.applyConfig(config);
+            session.update();
+        });
+        rescheduleUpdates(config);
     }
 
     public void enableFor(PlayerAdapter player, boolean testMode) {
@@ -64,10 +69,12 @@ public class ScoreboardManager {
                 ScoreboardSession session = new ScoreboardSession(adapter, player, placeholderRegistry, configService.getConfig(), logger);
                 session.setTestMode(testMode);
                 session.show();
+                session.update();
                 return session;
             }
             existing.setTestMode(testMode);
             existing.show();
+            existing.update();
             return existing;
         });
     }
@@ -93,6 +100,15 @@ public class ScoreboardManager {
         for (ScoreboardSession session : sessions.values()) {
             session.update();
         }
+    }
+
+    private void rescheduleUpdates(ConfigService.Config config) {
+        if (updateTask != null) {
+            updateTask.cancel();
+        }
+        Duration interval = config == null ? Duration.ofSeconds(1) : config.getUpdateInterval();
+        long intervalMs = Math.max(250L, interval.toMillis());
+        this.updateTask = adapter.scheduleRepeating(this::updateAll, intervalMs);
     }
 
     private void handleJoin(PlayerAdapter player) {

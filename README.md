@@ -37,6 +37,16 @@ Dans le `pom.xml`, remplacez la dépendance par :
 mvn clean package
 ```
 
+## Démo locale (sans API Hytale)
+Une démo console est incluse pour valider le fonctionnement du scoreboard sans dépendance externe.
+
+```bash
+mvn -q -DskipTests package
+java -cp target/hytale-scoreboard-test-1.0.0.jar com.example.hytale.scoreboard.demo.DemoServer
+```
+
+La démo ajoute deux joueurs fictifs, active le mode test pour l’un d’eux, puis affiche les mises à jour du scoreboard dans les logs.
+
 ## Installer sur le serveur
 1. Récupérez le JAR généré dans `target/`.
 2. Copiez-le dans le dossier des plugins du serveur Hytale.

@@ -79,6 +79,7 @@ public class ScoreboardSession {
             } catch (Exception ex) {
                 logger.fine("Failed to dispose scoreboard view: " + ex.getMessage());
             }
+            view = null;
         }
     }
 }
