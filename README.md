@@ -50,7 +50,7 @@ La démo ajoute deux joueurs fictifs, active le mode test pour l’un d’eux, p
 ## Installer sur le serveur
 1. Récupérez le JAR généré dans `target/`.
 2. Copiez-le dans le dossier des plugins du serveur Hytale.
-3. Assurez-vous que le `plugin descriptor` (voir `src/main/resources/plugin.json`) est reconnu par votre version du serveur.
+3. Assurez-vous que le `plugin descriptor` (voir `src/main/resources/plugin.json` ou `src/main/resources/plugin.yml`) est reconnu par votre version du serveur.
 
 ## Configuration
 Le fichier `config.properties` est copié automatiquement dans `plugins/HytaleScoreboardTest/` au premier lancement.
