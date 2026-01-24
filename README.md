@@ -14,6 +14,11 @@ Ce dépôt fournit une base technique pour le serveur Heneria sur Hytale. L’ob
 2. Initialiser l’application en chargeant `HeneriaServer`.
 3. Enregistrer vos modules supplémentaires via `ModuleManager`.
 
+## Compilation avec Maven
+```bash
+mvn clean package
+```
+
 ## Documentation
 - Architecture & modules : `docs/ARCHITECTURE.md`
 - Configuration : `docs/CONFIGURATION.md`
